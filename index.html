@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>💰 บัญชีรายรับรายจ่าย</title>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=Mitr:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #FDF6EC;
+    --warm-white: #FFFBF4;
+    --sage: #8FAF8F;
+    --sage-light: #C8DCC8;
+    --sage-dark: #5A7D5A;
+    --blush: #E8A598;
+    --blush-light: #F5D5CF;
+    --gold: #C9963A;
+    --gold-light: #F0D5A0;
+    --brown: #6B4F3A;
+    --brown-light: #9B7A62;
+    --text: #3D2B1F;
+    --text-light: #7A6259;
+    --shadow: 0 4px 20px rgba(107,79,58,0.12);
+    --shadow-sm: 0 2px 8px rgba(107,79,58,0.08);
+    --radius: 18px;
+    --radius-sm: 10px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Sarabun', sans-serif;
+    background: var(--cream);
+    color: var(--text);
+    min-height: 100vh;
+    background-image: 
+      radial-gradient(circle at 20% 20%, rgba(143,175,143,0.15) 0%, transparent 50%),
+      radial-gradient(circle at 80% 80%, rgba(232,165,152,0.15) 0%, transparent 50%);
+  }
+
+  /* ===== SCREENS ===== */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ===== PROFILE PICKER ===== */
+  #screen-profiles {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 30px 20px;
+  }
+  #screen-profiles.active { display: flex; }
+
+  .app-logo {
+    font-family: 'Mitr', sans-serif;
+    font-size: 2.8rem;
+    text-align: center;
+    margin-bottom: 6px;
+    line-height: 1;
+  }
+  .app-subtitle {
+    font-size: 1rem;
+    color: var(--text-light);
+    text-align: center;
+    margin-bottom: 36px;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+  }
+
+  .profiles-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 20px;
+  }
+
+  .profile-card {
+    background: var(--warm-white);
+    border-radius: var(--radius);
+    padding: 20px 16px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    border: 2.5px solid transparent;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .profile-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--sage-light), var(--blush-light));
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .profile-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .profile-card:hover::before { opacity: 0.3; }
+  .profile-card.selected { border-color: var(--sage); }
+
+  .profile-emoji { font-size: 2.4rem; margin-bottom: 8px; position: relative; z-index: 1; }
+  .profile-name { font-size: 0.95rem; font-weight: 600; color: var(--text); position: relative; z-index: 1; }
+  .profile-balance { font-size: 0.78rem; color: var(--text-light); margin-top: 3px; position: relative; z-index: 1; }
+
+  .add-profile-card {
+    background: transparent;
+    border: 2.5px dashed var(--sage-light);
+    border-radius: var(--radius);
+    padding: 20px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--sage-dark);
+    font-size: 0.9rem;
+  }
+  .add-profile-card:hover { border-color: var(--sage); background: rgba(143,175,143,0.05); }
+  .add-icon { font-size: 2rem; margin-bottom: 6px; display: block; }
+
+  .delete-profile-btn {
+    position: absolute;
+    top: 8px; right: 8px;
+    width: 20px; height: 20px;
+    background: var(--blush);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 2;
+    opacity: 0;
+    transition: opacity 0.2s;
+    line-height: 1;
+  }
+  .profile-card:hover .delete-profile-btn { opacity: 1; }
+
+  /* ===== MAIN APP ===== */
+  #screen-app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 0 100px;
+  }
+  #screen-app.active { display: block; }
+
+  .app-header {
+    background: var(--warm-white);
+    padding: 20px 20px 0;
+    box-shadow: 0 2px 12px rgba(107,79,58,0.06);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .header-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 16px;
+  }
+  .back-btn {
+    background: none; border: none;
+    font-size: 1.5rem; cursor: pointer;
+    color: var(--text-light);
+    padding: 4px 8px 4px 0;
+    transition: color 0.2s;
+  }
+  .back-btn:hover { color: var(--text); }
+  .current-profile {
+    display: flex; align-items: center; gap: 8px;
+  }
+  .current-profile-emoji { font-size: 1.5rem; }
+  .current-profile-name { font-family: 'Mitr', sans-serif; font-size: 1.1rem; font-weight: 500; }
+
+  /* Month selector */
+  .month-selector {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding: 12px 0 14px;
+  }
+  .month-nav { background: none; border: none; cursor: pointer; font-size: 1.2rem; color: var(--text-light); padding: 4px 8px; }
+  .month-nav:hover { color: var(--text); }
+  .month-label { font-family: 'Mitr', sans-serif; font-size: 1rem; font-weight: 500; min-width: 130px; text-align: center; }
+
+  /* Summary card */
+  .summary-card {
+    margin: 16px;
+    background: linear-gradient(135deg, var(--sage-dark) 0%, #4A6E4A 100%);
+    border-radius: var(--radius);
+    padding: 24px 20px;
+    color: white;
+    box-shadow: 0 8px 24px rgba(90,125,90,0.3);
+    position: relative;
+    overflow: hidden;
+  }
+  .summary-card::after {
+    content: '🌿';
+    position: absolute;
+    right: -10px; bottom: -15px;
+    font-size: 5rem;
+    opacity: 0.12;
+    transform: rotate(-20deg);
+  }
+  .summary-label { font-size: 0.85rem; opacity: 0.8; margin-bottom: 4px; }
+  .summary-balance { font-family: 'Mitr', sans-serif; font-size: 2.2rem; font-weight: 600; margin-bottom: 16px; }
+  .summary-row {
+    display: flex; gap: 16px;
+  }
+  .summary-item {
+    flex: 1;
+    background: rgba(255,255,255,0.12);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+  }
+  .summary-item-label { font-size: 0.78rem; opacity: 0.75; }
+  .summary-item-value { font-family: 'Mitr', sans-serif; font-size: 1.15rem; font-weight: 500; }
+  .income-color { color: #A8F0A8; }
+  .expense-color { color: #FFBCB0; }
+
+  /* Tabs */
+  .tabs {
+    display: flex;
+    margin: 0 16px 16px;
+    background: var(--warm-white);
+    border-radius: var(--radius-sm);
+    padding: 4px;
+    box-shadow: var(--shadow-sm);
+  }
+  .tab-btn {
+    flex: 1; border: none; background: none;
+    padding: 9px; border-radius: 8px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 0.9rem; font-weight: 600;
+    cursor: pointer; color: var(--text-light);
+    transition: all 0.2s;
+  }
+  .tab-btn.active {
+    background: var(--sage-dark); color: white;
+    box-shadow: 0 2px 8px rgba(90,125,90,0.25);
+  }
+
+  /* Transaction list */
+  .section-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-light);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0 20px 8px;
+  }
+
+  .income-section { margin-bottom: 20px; }
+
+  .income-input-card {
+    background: var(--warm-white);
+    border-radius: var(--radius);
+    margin: 0 16px 16px;
+    padding: 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .income-row {
+    display: flex; gap: 10px; align-items: center;
+  }
+  .income-row input {
+    flex: 1;
+    border: 2px solid var(--gold-light);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 1rem;
+    background: var(--cream);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .income-row input:focus { border-color: var(--gold); }
+  .income-badge {
+    background: linear-gradient(135deg, #6AAF6A, #4A8F4A);
+    color: white;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  .expense-list { padding: 0 16px; }
+
+  .expense-item {
+    background: var(--warm-white);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: var(--shadow-sm);
+    animation: slideIn 0.25s ease;
+  }
+  @keyframes slideIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .expense-emoji { font-size: 1.5rem; width: 40px; height: 40px; background: var(--cream); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .expense-info { flex: 1; min-width: 0; }
+  .expense-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .expense-category { font-size: 0.75rem; color: var(--text-light); }
+  .expense-amount { font-family: 'Mitr', sans-serif; font-weight: 600; font-size: 1.05rem; color: var(--blush); white-space: nowrap; }
+  .expense-delete { background: none; border: none; cursor: pointer; color: var(--text-light); font-size: 1rem; padding: 4px; opacity: 0.5; transition: opacity 0.2s; flex-shrink: 0; }
+  .expense-delete:hover { opacity: 1; color: var(--blush); }
+
+  /* Empty state */
+  .empty-state {
+    text-align: center; padding: 40px 20px;
+    color: var(--text-light);
+  }
+  .empty-emoji { font-size: 3rem; margin-bottom: 10px; }
+  .empty-text { font-size: 0.9rem; }
+
+  /* FAB */
+  .fab {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    width: 58px; height: 58px;
+    background: linear-gradient(135deg, var(--blush), #D08070);
+    border: none; border-radius: 50%;
+    font-size: 1.6rem;
+    color: white; cursor: pointer;
+    box-shadow: 0 6px 20px rgba(232,165,152,0.5);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    z-index: 20;
+  }
+  .fab:hover { transform: scale(1.08); box-shadow: 0 8px 28px rgba(232,165,152,0.6); }
+  .fab:active { transform: scale(0.95); }
+
+  /* ===== MODAL ===== */
+  .modal-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(61,43,31,0.45);
+    backdrop-filter: blur(4px);
+    z-index: 100;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--warm-white);
+    border-radius: 24px 24px 0 0;
+    padding: 24px 20px 40px;
+    width: 100%;
+    max-width: 480px;
+    animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: var(--brown-light);
+    opacity: 0.3;
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+  .modal-title { font-family: 'Mitr', sans-serif; font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; text-align: center; }
+
+  .form-group { margin-bottom: 16px; }
+  .form-label { font-size: 0.85rem; font-weight: 600; color: var(--text-light); margin-bottom: 6px; display: block; }
+  .form-input {
+    width: 100%;
+    border: 2px solid var(--gold-light);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-family: 'Sarabun', sans-serif;
+    font-size: 1rem;
+    background: var(--cream);
+    color: var(--text);
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .form-input:focus { border-color: var(--gold); }
+
+  .emoji-picker {
+    display: flex; gap: 8px; flex-wrap: wrap;
+  }
+  .emoji-btn {
+    width: 42px; height: 42px;
+    background: var(--cream); border: 2px solid transparent;
+    border-radius: 10px; font-size: 1.4rem;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .emoji-btn:hover { background: var(--gold-light); }
+  .emoji-btn.active { border-color: var(--gold); background: var(--gold-light); }
+
+  .submit-btn {
+    width: 100%;
+    background: linear-gradient(135deg, var(--sage-dark), #4A6E4A);
+    color: white; border: none;
+    border-radius: var(--radius);
+    padding: 14px;
+    font-family: 'Mitr', sans-serif;
+    font-size: 1rem; font-weight: 500;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
+    box-shadow: 0 4px 14px rgba(90,125,90,0.3);
+  }
+  .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(90,125,90,0.35); }
+
+  /* Profile modal */
+  .profile-emoji-big {
+    font-size: 3rem; text-align: center; margin-bottom: 12px;
+  }
+
+  /* Number format helper */
+  .num { font-feature-settings: "tnum"; }
+
+  @media (max-width: 400px) {
+    .summary-balance { font-size: 1.8rem; }
+    .profiles-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- PROFILE SCREEN -->
+<div id="screen-profiles" class="screen active">
+  <div class="app-logo">🪙</div>
+  <p class="app-subtitle">บัญชีรายรับรายจ่าย</p>
+  <div class="profiles-grid" id="profiles-grid"></div>
+  <div style="width:100%;max-width:400px">
+    <div class="add-profile-card" onclick="showAddProfileModal()">
+      <span class="add-icon">＋</span>
+      เพิ่มโปรไฟล์ใหม่
+    </div>
+  </div>
+</div>
+
+<!-- APP SCREEN -->
+<div id="screen-app" class="screen">
+  <div class="app-header">
+    <div class="header-top">
+      <button class="back-btn" onclick="backToProfiles()">←</button>
+      <div class="current-profile">
+        <span class="current-profile-emoji" id="header-emoji">🐱</span>
+        <span class="current-profile-name" id="header-name">โปรไฟล์</span>
+      </div>
+      <div style="width:40px"></div>
+    </div>
+    <div class="month-selector">
+      <button class="month-nav" onclick="changeMonth(-1)">‹</button>
+      <span class="month-label" id="month-label"></span>
+      <button class="month-nav" onclick="changeMonth(1)">›</button>
+    </div>
+  </div>
+
+  <div class="summary-card">
+    <div class="summary-label">ยอดคงเหลือ</div>
+    <div class="summary-balance num" id="balance-display">฿0</div>
+    <div class="summary-row">
+      <div class="summary-item">
+        <div class="summary-item-label">💚 รายรับ</div>
+        <div class="summary-item-value income-color num" id="income-display">฿0</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-item-label">🩷 รายจ่าย</div>
+        <div class="summary-item-value expense-color num" id="expense-display">฿0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Income section -->
+  <div class="income-section">
+    <div class="section-label">💰 รายรับประจำเดือน</div>
+    <div class="income-input-card">
+      <div class="income-row">
+        <input type="number" id="income-input" placeholder="ใส่ยอดรายรับ..." min="0" oninput="updateIncome()">
+        <span class="income-badge">บาท</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Expense list -->
+  <div class="section-label">🧾 รายการจ่าย</div>
+  <div class="expense-list" id="expense-list"></div>
+
+  <button class="fab" onclick="showAddExpenseModal()">＋</button>
+</div>
+
+<!-- Add Expense Modal -->
+<div class="modal-overlay" id="modal-expense" onclick="closeModalOnBg(event,'modal-expense')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">✏️ เพิ่มรายการจ่าย</div>
+    <div class="form-group">
+      <label class="form-label">ชื่อรายการ</label>
+      <input class="form-input" id="exp-name" placeholder="เช่น ค่ากาแฟ, ค่าเช่า..." maxlength="40">
+    </div>
+    <div class="form-group">
+      <label class="form-label">จำนวนเงิน (บาท)</label>
+      <input class="form-input" id="exp-amount" type="number" placeholder="0.00" min="0">
+    </div>
+    <div class="form-group">
+      <label class="form-label">หมวดหมู่</label>
+      <div class="emoji-picker" id="emoji-picker">
+        <button class="emoji-btn active" onclick="selectEmoji(this,'🍜')">🍜</button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'☕')">☕</button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'🛒')">🛒</button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'🏠')">🏠</button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'🚗')">🚗</button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'👗')">👗</button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'💊')">💊</button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'🎮')">🎮</button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'✈️')">✈️</button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'📱')">📱</button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'🎁')">🎁</button>
+        <button class="emoji-btn" onclick="selectEmoji(this,'💡')">💡</button>
+      </div>
+    </div>
+    <button class="submit-btn" onclick="addExpense()">+ เพิ่มรายการ</button>
+  </div>
+</div>
+
+<!-- Add Profile Modal -->
+<div class="modal-overlay" id="modal-profile" onclick="closeModalOnBg(event,'modal-profile')">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🌟 สร้างโปรไฟล์ใหม่</div>
+    <div class="form-group">
+      <label class="form-label">ชื่อโปรไฟล์</label>
+      <input class="form-input" id="prof-name" placeholder="เช่น บัญชีส่วนตัว, งาน..." maxlength="20">
+    </div>
+    <div class="form-group">
+      <label class="form-label">เลือกไอคอน</label>
+      <div class="emoji-picker" id="profile-emoji-picker">
+        <button class="emoji-btn active" onclick="selectProfileEmoji(this,'🐱')">🐱</button>
+        <button class="emoji-btn" onclick="selectProfileEmoji(this,'🐶')">🐶</button>
+        <button class="emoji-btn" onclick="selectProfileEmoji(this,'🌸')">🌸</button>
+        <button class="emoji-btn" onclick="selectProfileEmoji(this,'⭐')">⭐</button>
+        <button class="emoji-btn" onclick="selectProfileEmoji(this,'🌙')">🌙</button>
+        <button class="emoji-btn" onclick="selectProfileEmoji(this,'🍀')">🍀</button>
+        <button class="emoji-btn" onclick="selectProfileEmoji(this,'🦊')">🦊</button>
+        <button class="emoji-btn" onclick="selectProfileEmoji(this,'🐻')">🐻</button>
+        <button class="emoji-btn" onclick="selectProfileEmoji(this,'🌈')">🌈</button>
+        <button class="emoji-btn" onclick="selectProfileEmoji(this,'💎')">💎</button>
+        <button class="emoji-btn" onclick="selectProfileEmoji(this,'🏡')">🏡</button>
+        <button class="emoji-btn" onclick="selectProfileEmoji(this,'🎀')">🎀</button>
+      </div>
+    </div>
+    <button class="submit-btn" onclick="addProfile()">✨ สร้างโปรไฟล์</button>
+  </div>
+</div>
+
+<script>
+// ===== DATA =====
+let db = JSON.parse(localStorage.getItem('budgetDB') || '{"profiles":[]}');
+let currentProfileId = null;
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth(); // 0-indexed
+let selectedEmoji = '🍜';
+let selectedProfileEmoji = '🐱';
+
+const MONTHS_TH = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
+function save() { localStorage.setItem('budgetDB', JSON.stringify(db)); }
+
+function getMonthKey() { return `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`; }
+
+function getCurrentProfile() { return db.profiles.find(p => p.id === currentProfileId); }
+
+function getMonthData() {
+  const p = getCurrentProfile();
+  if (!p) return { income: 0, expenses: [] };
+  const k = getMonthKey();
+  if (!p.months) p.months = {};
+  if (!p.months[k]) p.months[k] = { income: 0, expenses: [] };
+  return p.months[k];
+}
+
+// ===== FORMAT =====
+function fmt(n) {
+  return '฿' + Number(n).toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+}
+
+// ===== PROFILE SCREEN =====
+function renderProfiles() {
+  const grid = document.getElementById('profiles-grid');
+  grid.innerHTML = '';
+  if (db.profiles.length === 0) {
+    grid.innerHTML = '<div style="grid-column:span 2;text-align:center;color:var(--text-light);padding:20px 0;font-size:0.9rem;">ยังไม่มีโปรไฟล์ กด "เพิ่มโปรไฟล์ใหม่" ด้านล่างเลย!</div>';
+    return;
+  }
+  db.profiles.forEach(p => {
+    const totalIncome = Object.values(p.months || {}).reduce((s,m) => s + (m.income||0), 0);
+    const totalExpense = Object.values(p.months || {}).reduce((s,m) => s + (m.expenses||[]).reduce((e,x) => e + x.amount, 0), 0);
+    const balance = totalIncome - totalExpense;
+    const card = document.createElement('div');
+    card.className = 'profile-card';
+    card.innerHTML = `
+      <button class="delete-profile-btn" onclick="deleteProfile(event,'${p.id}')">✕</button>
+      <div class="profile-emoji">${p.emoji}</div>
+      <div class="profile-name">${p.name}</div>
+      <div class="profile-balance">${fmt(balance)}</div>
+    `;
+    card.addEventListener('click', () => openProfile(p.id));
+    grid.appendChild(card);
+  });
+}
+
+function openProfile(id) {
+  currentProfileId = id;
+  const p = db.profiles.find(x => x.id === id);
+  document.getElementById('header-emoji').textContent = p.emoji;
+  document.getElementById('header-name').textContent = p.name;
+  updateMonthLabel();
+  renderApp();
+  document.getElementById('screen-profiles').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+}
+
+function backToProfiles() {
+  document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-profiles').classList.add('active');
+  renderProfiles();
+}
+
+function deleteProfile(e, id) {
+  e.stopPropagation();
+  if (!confirm('ลบโปรไฟล์นี้?')) return;
+  db.profiles = db.profiles.filter(p => p.id !== id);
+  save(); renderProfiles();
+}
+
+function showAddProfileModal() {
+  document.getElementById('prof-name').value = '';
+  selectedProfileEmoji = '🐱';
+  document.querySelectorAll('#profile-emoji-picker .emoji-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+  document.getElementById('modal-profile').classList.add('open');
+}
+
+function addProfile() {
+  const name = document.getElementById('prof-name').value.trim();
+  if (!name) { document.getElementById('prof-name').focus(); return; }
+  const p = { id: Date.now().toString(), name, emoji: selectedProfileEmoji, months: {} };
+  db.profiles.push(p);
+  save();
+  document.getElementById('modal-profile').classList.remove('open');
+  renderProfiles();
+}
+
+function selectProfileEmoji(btn, emoji) {
+  selectedProfileEmoji = emoji;
+  document.querySelectorAll('#profile-emoji-picker .emoji-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// ===== APP SCREEN =====
+function updateMonthLabel() {
+  document.getElementById('month-label').textContent = MONTHS_TH[currentMonth] + ' ' + (currentYear + 543);
+}
+
+function changeMonth(dir) {
+  currentMonth += dir;
+  if (currentMonth > 11) { currentMonth = 0; currentYear++; }
+  if (currentMonth < 0) { currentMonth = 11; currentYear--; }
+  updateMonthLabel();
+  renderApp();
+}
+
+function renderApp() {
+  const md = getMonthData();
+  document.getElementById('income-input').value = md.income || '';
+  renderSummary();
+  renderExpenses();
+}
+
+function renderSummary() {
+  const md = getMonthData();
+  const income = md.income || 0;
+  const expenses = (md.expenses || []).reduce((s,e) => s + e.amount, 0);
+  const balance = income - expenses;
+  document.getElementById('balance-display').textContent = fmt(balance);
+  document.getElementById('income-display').textContent = fmt(income);
+  document.getElementById('expense-display').textContent = fmt(expenses);
+}
+
+function updateIncome() {
+  const val = parseFloat(document.getElementById('income-input').value) || 0;
+  const md = getMonthData();
+  md.income = val;
+  save();
+  renderSummary();
+}
+
+function renderExpenses() {
+  const md = getMonthData();
+  const list = document.getElementById('expense-list');
+  if (!md.expenses || md.expenses.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-emoji">🌿</div><div class="empty-text">ยังไม่มีรายการจ่าย<br>กด + เพื่อเพิ่มรายการ</div></div>`;
+    return;
+  }
+  list.innerHTML = md.expenses.map((e,i) => `
+    <div class="expense-item">
+      <div class="expense-emoji">${e.emoji}</div>
+      <div class="expense-info">
+        <div class="expense-name">${e.name}</div>
+      </div>
+      <div class="expense-amount num">${fmt(e.amount)}</div>
+      <button class="expense-delete" onclick="deleteExpense(${i})">🗑</button>
+    </div>
+  `).join('');
+}
+
+function deleteExpense(i) {
+  const md = getMonthData();
+  md.expenses.splice(i, 1);
+  save(); renderApp();
+}
+
+// ===== ADD EXPENSE MODAL =====
+function showAddExpenseModal() {
+  document.getElementById('exp-name').value = '';
+  document.getElementById('exp-amount').value = '';
+  selectedEmoji = '🍜';
+  document.querySelectorAll('#emoji-picker .emoji-btn').forEach((b,i) => b.classList.toggle('active', i===0));
+  document.getElementById('modal-expense').classList.add('open');
+}
+
+function addExpense() {
+  const name = document.getElementById('exp-name').value.trim();
+  const amount = parseFloat(document.getElementById('exp-amount').value);
+  if (!name || !amount || amount <= 0) {
+    if (!name) document.getElementById('exp-name').focus();
+    else document.getElementById('exp-amount').focus();
+    return;
+  }
+  const md = getMonthData();
+  md.expenses.push({ name, amount, emoji: selectedEmoji });
+  save();
+  document.getElementById('modal-expense').classList.remove('open');
+  renderApp();
+}
+
+function selectEmoji(btn, emoji) {
+  selectedEmoji = emoji;
+  document.querySelectorAll('#emoji-picker .emoji-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function closeModalOnBg(e, id) {
+  if (e.target.id === id) document.getElementById(id).classList.remove('open');
+}
+
+// Enter key support
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    if (document.getElementById('modal-expense').classList.contains('open')) addExpense();
+    if (document.getElementById('modal-profile').classList.contains('open')) addProfile();
+  }
+});
+
+// ===== INIT =====
+// Demo data for first time
+if (db.profiles.length === 0) {
+  db.profiles.push({
+    id: '1',
+    name: 'ส่วนตัว',
+    emoji: '🐱',
+    months: {
+      [`${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`]: {
+        income: 25000,
+        expenses: [
+          { name: 'ค่าเช่าห้อง', amount: 5500, emoji: '🏠' },
+          { name: 'ค่าอาหาร', amount: 3200, emoji: '🍜' },
+          { name: 'ค่าเดินทาง', amount: 1200, emoji: '🚗' },
+        ]
+      }
+    }
+  });
+  save();
+}
+
+renderProfiles();
+</script>
+</body>
+</html>
