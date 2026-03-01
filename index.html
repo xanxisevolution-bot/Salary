@@ -10,6 +10,7 @@
     --cream: #FDF6EC;
     --warm-white: #FFFBF4;
     --sage-dark: #5A7D5A;
+    --sage-light: #C8DCC8;
     --blush: #E8A598;
     --blush-light: #F5D5CF;
     --gold: #C9963A;
@@ -17,86 +18,118 @@
     --brown-light: #9B7A62;
     --text: #3D2B1F;
     --text-light: #7A6259;
-    --shadow: 0 4px 20px rgba(107,79,58,0.12);
     --shadow-sm: 0 2px 8px rgba(107,79,58,0.08);
+    --shadow: 0 4px 20px rgba(107,79,58,0.12);
     --radius: 18px;
     --radius-sm: 10px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body {
     font-family: 'Sarabun', sans-serif;
-    background: var(--cream);
-    color: var(--text);
-    min-height: 100vh;
+    background: var(--cream); color: var(--text); min-height: 100vh;
     background-image:
       radial-gradient(circle at 20% 20%, rgba(143,175,143,0.15) 0%, transparent 50%),
       radial-gradient(circle at 80% 80%, rgba(232,165,152,0.15) 0%, transparent 50%);
   }
-  #app { max-width: 480px; margin: 0 auto; padding: 0 0 100px; }
 
-  /* Header */
+  /* ── Loading ── */
+  #loading {
+    position: fixed; inset: 0; background: var(--cream);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    z-index: 999; gap: 14px;
+  }
+  #loading.hide { display: none; }
+  .spinner {
+    width: 40px; height: 40px;
+    border: 3px solid var(--gold-light); border-top-color: var(--sage-dark);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loading-text { font-family: 'Mitr', sans-serif; font-size: 0.95rem; color: var(--text-light); }
+
+  /* ── Login Screen ── */
+  #screen-login {
+    display: none; min-height: 100vh;
+    flex-direction: column; align-items: center; justify-content: center; padding: 30px 24px;
+  }
+  #screen-login.active { display: flex; }
+  .login-logo { font-size: 3.5rem; margin-bottom: 8px; }
+  .login-title { font-family: 'Mitr', sans-serif; font-size: 1.6rem; font-weight: 600; margin-bottom: 6px; }
+  .login-subtitle { font-size: 0.9rem; color: var(--text-light); margin-bottom: 36px; font-weight: 300; }
+  .login-card {
+    background: var(--warm-white); border-radius: var(--radius);
+    padding: 28px 24px; width: 100%; max-width: 360px;
+    box-shadow: var(--shadow);
+  }
+  .login-label { font-size: 0.85rem; font-weight: 600; color: var(--text-light); margin-bottom: 8px; display: block; }
+  .login-input {
+    width: 100%; border: 2px solid var(--gold-light); border-radius: var(--radius-sm);
+    padding: 13px 16px; font-family: 'Sarabun', sans-serif; font-size: 1.05rem;
+    background: var(--cream); color: var(--text); outline: none;
+    transition: border-color 0.2s; margin-bottom: 16px;
+  }
+  .login-input:focus { border-color: var(--gold); }
+  .login-btn {
+    width: 100%; background: linear-gradient(135deg, var(--sage-dark), #4A6E4A);
+    color: white; border: none; border-radius: var(--radius);
+    padding: 14px; font-family: 'Mitr', sans-serif; font-size: 1rem; font-weight: 500;
+    cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 14px rgba(90,125,90,0.3);
+  }
+  .login-btn:hover { transform: translateY(-1px); box-shadow: 0 6px 18px rgba(90,125,90,0.35); }
+  .login-hint { font-size: 0.78rem; color: var(--text-light); text-align: center; margin-top: 12px; }
+  .login-error { font-size: 0.82rem; color: #c0392b; margin-bottom: 12px; display: none; }
+  .login-error.show { display: block; }
+
+  /* ── App Screen ── */
+  #screen-app { display: none; max-width: 480px; margin: 0 auto; padding: 0 0 100px; }
+  #screen-app.active { display: block; }
+
   .app-header {
-    background: var(--warm-white);
-    padding: 20px 20px 0;
+    background: var(--warm-white); padding: 16px 20px 0;
     box-shadow: 0 2px 12px rgba(107,79,58,0.06);
     position: sticky; top: 0; z-index: 10;
   }
-  .app-title {
-    font-family: 'Mitr', sans-serif;
-    font-size: 1.2rem; font-weight: 600;
-    text-align: center; padding-bottom: 4px;
+  .header-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+  .app-title { font-family: 'Mitr', sans-serif; font-size: 1.1rem; font-weight: 600; }
+  .user-tag {
+    display: flex; align-items: center; gap: 6px;
+    background: var(--cream); border-radius: 20px; padding: 5px 12px;
+    font-size: 0.82rem; font-weight: 600; color: var(--sage-dark);
+    cursor: pointer; transition: background 0.2s; border: none;
   }
-  .month-selector {
-    display: flex; align-items: center; justify-content: center;
-    gap: 16px; padding: 12px 0 14px;
-  }
-  .month-nav {
-    background: none; border: none; cursor: pointer;
-    font-size: 1.3rem; color: var(--text-light); padding: 4px 10px;
-    transition: color 0.2s;
-  }
+  .user-tag:hover { background: var(--sage-light); }
+
+  .month-selector { display: flex; align-items: center; justify-content: center; gap: 16px; padding: 10px 0 6px; }
+  .month-nav { background: none; border: none; cursor: pointer; font-size: 1.3rem; color: var(--text-light); padding: 4px 10px; transition: color 0.2s; }
   .month-nav:hover { color: var(--text); }
-  .month-label {
-    font-family: 'Mitr', sans-serif; font-size: 1rem; font-weight: 500;
-    min-width: 130px; text-align: center;
-  }
+  .month-label { font-family: 'Mitr', sans-serif; font-size: 1rem; font-weight: 500; min-width: 130px; text-align: center; }
+  .sync-bar { text-align: center; font-size: 0.75rem; padding: 4px 0 8px; height: 25px; }
+  .sync-bar.syncing { color: var(--gold); }
+  .sync-bar.saved   { color: var(--sage-dark); }
+  .sync-bar.error   { color: #c0392b; }
 
   /* Summary */
   .summary-card {
     margin: 16px;
     background: linear-gradient(135deg, var(--sage-dark) 0%, #4A6E4A 100%);
-    border-radius: var(--radius); padding: 24px 20px;
-    color: white; box-shadow: 0 8px 24px rgba(90,125,90,0.3);
-    position: relative; overflow: hidden;
+    border-radius: var(--radius); padding: 24px 20px; color: white;
+    box-shadow: 0 8px 24px rgba(90,125,90,0.3); position: relative; overflow: hidden;
   }
-  .summary-card::after {
-    content: '🌿'; position: absolute;
-    right: -10px; bottom: -15px;
-    font-size: 5rem; opacity: 0.12; transform: rotate(-20deg);
-  }
+  .summary-card::after { content: '🌿'; position: absolute; right: -10px; bottom: -15px; font-size: 5rem; opacity: 0.12; transform: rotate(-20deg); }
   .summary-label { font-size: 0.85rem; opacity: 0.8; margin-bottom: 4px; }
   .summary-balance { font-family: 'Mitr', sans-serif; font-size: 2.4rem; font-weight: 600; margin-bottom: 16px; }
   .summary-row { display: flex; gap: 16px; }
-  .summary-item {
-    flex: 1; background: rgba(255,255,255,0.12);
-    border-radius: var(--radius-sm); padding: 10px 12px;
-  }
+  .summary-item { flex: 1; background: rgba(255,255,255,0.12); border-radius: var(--radius-sm); padding: 10px 12px; }
   .summary-item-label { font-size: 0.78rem; opacity: 0.75; }
   .summary-item-value { font-family: 'Mitr', sans-serif; font-size: 1.15rem; font-weight: 500; }
   .income-color { color: #A8F0A8; }
   .expense-color { color: #FFBCB0; }
 
-  .section-label {
-    font-size: 0.78rem; font-weight: 600; color: var(--text-light);
-    text-transform: uppercase; letter-spacing: 1px; padding: 0 20px 8px;
-  }
+  .section-label { font-size: 0.78rem; font-weight: 600; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; padding: 0 20px 8px; }
 
-  /* Income input */
+  /* Income */
   .income-section { margin-bottom: 20px; }
-  .income-input-card {
-    background: var(--warm-white); border-radius: var(--radius);
-    margin: 0 16px 16px; padding: 16px; box-shadow: var(--shadow-sm);
-  }
+  .income-input-card { background: var(--warm-white); border-radius: var(--radius); margin: 0 16px 16px; padding: 16px; box-shadow: var(--shadow-sm); }
   .income-row { display: flex; gap: 10px; align-items: center; }
   .income-row input {
     flex: 1; border: 2px solid var(--gold-light); border-radius: var(--radius-sm);
@@ -104,116 +137,92 @@
     background: var(--cream); color: var(--text); outline: none; transition: border-color 0.2s;
   }
   .income-row input:focus { border-color: var(--gold); }
-  .income-badge {
-    background: linear-gradient(135deg, #6AAF6A, #4A8F4A);
-    color: white; padding: 6px 14px; border-radius: 20px;
-    font-size: 0.8rem; font-weight: 600; white-space: nowrap;
-  }
+  .income-badge { background: linear-gradient(135deg, #6AAF6A, #4A8F4A); color: white; padding: 6px 14px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; white-space: nowrap; }
 
-  /* Expense list */
+  /* Expenses */
   .expense-list { padding: 0 16px; }
   .expense-item {
     background: var(--warm-white); border-radius: var(--radius);
     padding: 14px 16px; margin-bottom: 10px;
     display: flex; align-items: center; gap: 12px;
-    box-shadow: var(--shadow-sm);
-    animation: slideIn 0.25s ease;
+    box-shadow: var(--shadow-sm); animation: slideIn 0.25s ease;
   }
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(8px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .expense-emoji {
-    font-size: 1.5rem; width: 40px; height: 40px;
-    background: var(--cream); border-radius: 10px;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
-  }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+  .expense-emoji { font-size: 1.5rem; width: 40px; height: 40px; background: var(--cream); border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .expense-info { flex: 1; min-width: 0; }
   .expense-name { font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .expense-amount { font-family: 'Mitr', sans-serif; font-weight: 600; font-size: 1.05rem; color: var(--blush); white-space: nowrap; }
-  .expense-delete {
-    background: none; border: none; cursor: pointer;
-    color: var(--text-light); font-size: 1rem; padding: 4px;
-    opacity: 0.45; transition: opacity 0.2s; flex-shrink: 0;
-  }
+  .expense-delete { background: none; border: none; cursor: pointer; color: var(--text-light); font-size: 1rem; padding: 4px; opacity: 0.45; transition: opacity 0.2s; flex-shrink: 0; }
   .expense-delete:hover { opacity: 1; color: var(--blush); }
-
   .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
   .empty-emoji { font-size: 3rem; margin-bottom: 10px; }
 
   /* FAB */
   .fab {
-    position: fixed; bottom: 24px; right: 24px;
-    width: 58px; height: 58px;
+    position: fixed; bottom: 24px; right: 24px; width: 58px; height: 58px;
     background: linear-gradient(135deg, var(--blush), #D08070);
-    border: none; border-radius: 50%; font-size: 1.7rem;
-    color: white; cursor: pointer;
-    box-shadow: 0 6px 20px rgba(232,165,152,0.5);
-    display: flex; align-items: center; justify-content: center;
-    transition: all 0.2s; z-index: 20;
+    border: none; border-radius: 50%; font-size: 1.7rem; color: white;
+    cursor: pointer; box-shadow: 0 6px 20px rgba(232,165,152,0.5);
+    display: flex; align-items: center; justify-content: center; transition: all 0.2s; z-index: 20;
   }
   .fab:hover { transform: scale(1.08); }
   .fab:active { transform: scale(0.95); }
 
   /* Modal */
-  .modal-overlay {
-    display: none; position: fixed; inset: 0;
-    background: rgba(61,43,31,0.45); backdrop-filter: blur(4px);
-    z-index: 100; align-items: flex-end; justify-content: center;
-  }
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(61,43,31,0.45); backdrop-filter: blur(4px); z-index: 100; align-items: flex-end; justify-content: center; }
   .modal-overlay.open { display: flex; }
-  .modal {
-    background: var(--warm-white); border-radius: 24px 24px 0 0;
-    padding: 24px 20px 40px; width: 100%; max-width: 480px;
-    animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1);
-  }
-  @keyframes slideUp {
-    from { transform: translateY(100%); }
-    to   { transform: translateY(0); }
-  }
-  .modal-handle {
-    width: 40px; height: 4px; background: var(--brown-light);
-    opacity: 0.3; border-radius: 2px; margin: 0 auto 20px;
-  }
+  .modal { background: var(--warm-white); border-radius: 24px 24px 0 0; padding: 24px 20px 40px; width: 100%; max-width: 480px; animation: slideUp 0.3s cubic-bezier(0.34,1.56,0.64,1); }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-handle { width: 40px; height: 4px; background: var(--brown-light); opacity: 0.3; border-radius: 2px; margin: 0 auto 20px; }
   .modal-title { font-family: 'Mitr', sans-serif; font-size: 1.2rem; font-weight: 600; margin-bottom: 20px; text-align: center; }
   .form-group { margin-bottom: 16px; }
   .form-label { font-size: 0.85rem; font-weight: 600; color: var(--text-light); margin-bottom: 6px; display: block; }
-  .form-input {
-    width: 100%; border: 2px solid var(--gold-light); border-radius: var(--radius-sm);
-    padding: 12px 14px; font-family: 'Sarabun', sans-serif; font-size: 1rem;
-    background: var(--cream); color: var(--text); outline: none; transition: border-color 0.2s;
-  }
+  .form-input { width: 100%; border: 2px solid var(--gold-light); border-radius: var(--radius-sm); padding: 12px 14px; font-family: 'Sarabun', sans-serif; font-size: 1rem; background: var(--cream); color: var(--text); outline: none; transition: border-color 0.2s; }
   .form-input:focus { border-color: var(--gold); }
   .emoji-picker { display: flex; gap: 8px; flex-wrap: wrap; }
-  .emoji-btn {
-    width: 42px; height: 42px; background: var(--cream);
-    border: 2px solid transparent; border-radius: 10px; font-size: 1.4rem;
-    cursor: pointer; display: flex; align-items: center; justify-content: center;
-    transition: all 0.15s;
-  }
+  .emoji-btn { width: 42px; height: 42px; background: var(--cream); border: 2px solid transparent; border-radius: 10px; font-size: 1.4rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
   .emoji-btn:hover { background: var(--gold-light); }
   .emoji-btn.active { border-color: var(--gold); background: var(--gold-light); }
-  .submit-btn {
-    width: 100%; background: linear-gradient(135deg, var(--sage-dark), #4A6E4A);
-    color: white; border: none; border-radius: var(--radius);
-    padding: 14px; font-family: 'Mitr', sans-serif; font-size: 1rem; font-weight: 500;
-    cursor: pointer; margin-top: 8px; transition: all 0.2s;
-    box-shadow: 0 4px 14px rgba(90,125,90,0.3);
-  }
+  .submit-btn { width: 100%; background: linear-gradient(135deg, var(--sage-dark), #4A6E4A); color: white; border: none; border-radius: var(--radius); padding: 14px; font-family: 'Mitr', sans-serif; font-size: 1rem; font-weight: 500; cursor: pointer; margin-top: 8px; transition: all 0.2s; box-shadow: 0 4px 14px rgba(90,125,90,0.3); }
   .submit-btn:hover { transform: translateY(-1px); }
   .num { font-feature-settings: "tnum"; }
 </style>
 </head>
 <body>
 
-<div id="app">
+<!-- Loading -->
+<div id="loading">
+  <div class="spinner"></div>
+  <div class="loading-text">กำลังโหลด...</div>
+</div>
+
+<!-- Login Screen -->
+<div id="screen-login">
+  <div class="login-logo">🪙</div>
+  <div class="login-title">บัญชีรายรับรายจ่าย</div>
+  <div class="login-subtitle">ใส่ชื่อของคุณเพื่อเข้าใช้งาน</div>
+  <div class="login-card">
+    <label class="login-label">ชื่อของคุณ</label>
+    <div class="login-error" id="login-error">กรุณาใส่ชื่อก่อนนะ</div>
+    <input class="login-input" id="login-name" placeholder="เช่น สมชาย, แม่, ออม..." maxlength="30" autocomplete="off">
+    <button class="login-btn" onclick="doLogin()">เข้าใช้งาน →</button>
+    <div class="login-hint">ชื่อจะถูกใช้แยกข้อมูลของแต่ละคน</div>
+  </div>
+</div>
+
+<!-- App Screen -->
+<div id="screen-app">
   <div class="app-header">
-    <div class="app-title">🪙 บัญชีรายรับรายจ่าย</div>
+    <div class="header-row">
+      <div class="app-title">🪙 บัญชีรายรับรายจ่าย</div>
+      <button class="user-tag" onclick="doLogout()" id="user-tag">👤 ชื่อ</button>
+    </div>
     <div class="month-selector">
       <button class="month-nav" onclick="changeMonth(-1)">‹</button>
       <span class="month-label" id="month-label"></span>
       <button class="month-nav" onclick="changeMonth(1)">›</button>
     </div>
+    <div class="sync-bar" id="sync-bar"></div>
   </div>
 
   <div class="summary-card">
@@ -247,7 +256,7 @@
   <button class="fab" onclick="showModal()">＋</button>
 </div>
 
-<!-- Modal -->
+<!-- Expense Modal -->
 <div class="modal-overlay" id="modal" onclick="closeModalOnBg(event)">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -281,118 +290,207 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp }                     from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAGQorQuLGv1lFbCkp4xUF9waJ9OV1WUu8",
+  authDomain: "payeverything-7f646.firebaseapp.com",
+  projectId: "payeverything-7f646",
+  storageBucket: "payeverything-7f646.firebasestorage.app",
+  messagingSenderId: "84502094224",
+  appId: "1:84502094224:web:2defab5c6429eb16a65315"
+};
+
+const fireApp = initializeApp(firebaseConfig);
+const db      = getFirestore(fireApp);
+
 const MONTHS_TH = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 
-let currentYear = new Date().getFullYear();
-let currentMonth = new Date().getMonth();
+let currentYear   = new Date().getFullYear();
+let currentMonth  = new Date().getMonth();
 let selectedEmoji = '🍜';
+let monthData     = { income: 0, expenses: [] };
+let currentUser   = null;
+let saveTimer     = null;
 
+// ── helpers ──
 function getKey() {
   return `${currentYear}-${String(currentMonth+1).padStart(2,'0')}`;
 }
-function loadData() {
-  return JSON.parse(localStorage.getItem('budgetData') || '{}');
-}
-function saveData(db) {
-  localStorage.setItem('budgetData', JSON.stringify(db));
-}
-function getMonth() {
-  const db = loadData();
-  return db[getKey()] || { income: 0, expenses: [] };
-}
-function setMonth(data) {
-  const db = loadData();
-  db[getKey()] = data;
-  saveData(db);
+function getDocPath() {
+  // Firestore path: users/{username}/months/{YYYY-MM}
+  return `users/${currentUser}/months/${getKey()}`;
 }
 function fmt(n) {
   return '฿' + Number(n).toLocaleString('th-TH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 }
+function syncBar(state, text) {
+  const el = document.getElementById('sync-bar');
+  el.className = 'sync-bar ' + state;
+  el.textContent = text;
+}
+function sanitizeName(name) {
+  // lowercase, remove spaces & special chars → safe for Firestore doc id
+  return name.trim().toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9ก-๙_]/g, '');
+}
 
+// ── Firebase ──
+async function loadMonth() {
+  document.getElementById('loading').classList.remove('hide');
+  syncBar('syncing', '⏳ กำลังโหลด...');
+  try {
+    const snap = await getDoc(doc(db, ...getDocPath().split('/')));
+    monthData = snap.exists() ? snap.data() : { income: 0, expenses: [] };
+    if (!monthData.expenses) monthData.expenses = [];
+    syncBar('saved', '✅ โหลดสำเร็จ');
+    setTimeout(() => syncBar('', ''), 1500);
+  } catch(e) {
+    syncBar('error', '⚠️ โหลดไม่สำเร็จ ตรวจสอบอินเทอร์เน็ต');
+  }
+  document.getElementById('loading').classList.add('hide');
+  render();
+}
+
+async function saveMonth() {
+  syncBar('syncing', '⏳ กำลังบันทึก...');
+  try {
+    await setDoc(doc(db, ...getDocPath().split('/')), monthData);
+    syncBar('saved', '✅ บันทึกแล้ว');
+    setTimeout(() => syncBar('', ''), 2000);
+  } catch(e) {
+    syncBar('error', '⚠️ บันทึกไม่สำเร็จ ตรวจสอบอินเทอร์เน็ต');
+  }
+}
+function debounceSave() {
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveMonth, 800);
+}
+
+// ── Render ──
 function render() {
-  const md = getMonth();
-  const income = md.income || 0;
-  const totalExp = (md.expenses || []).reduce((s,e) => s + e.amount, 0);
-  document.getElementById('income-input').value = income || '';
+  const income   = monthData.income || 0;
+  const totalExp = (monthData.expenses || []).reduce((s,e) => s + e.amount, 0);
+  document.getElementById('income-input').value          = income || '';
   document.getElementById('balance-display').textContent = fmt(income - totalExp);
-  document.getElementById('income-display').textContent = fmt(income);
+  document.getElementById('income-display').textContent  = fmt(income);
   document.getElementById('expense-display').textContent = fmt(totalExp);
+  document.getElementById('month-label').textContent     = MONTHS_TH[currentMonth] + ' ' + (currentYear + 543);
 
   const list = document.getElementById('expense-list');
-  if (!md.expenses || md.expenses.length === 0) {
+  if (!monthData.expenses || monthData.expenses.length === 0) {
     list.innerHTML = `<div class="empty-state"><div class="empty-emoji">🌿</div><div style="font-size:0.9rem">ยังไม่มีรายการจ่าย<br>กด + เพื่อเพิ่มรายการ</div></div>`;
     return;
   }
-  list.innerHTML = md.expenses.map((e,i) => `
+  list.innerHTML = monthData.expenses.map((e,i) => `
     <div class="expense-item">
       <div class="expense-emoji">${e.emoji}</div>
       <div class="expense-info"><div class="expense-name">${e.name}</div></div>
       <div class="expense-amount num">${fmt(e.amount)}</div>
-      <button class="expense-delete" onclick="deleteExpense(${i})">🗑</button>
+      <button class="expense-delete" onclick="window._del(${i})">🗑</button>
     </div>
   `).join('');
 }
 
-function updateIncome() {
-  const md = getMonth();
-  md.income = parseFloat(document.getElementById('income-input').value) || 0;
-  setMonth(md);
-  render();
-}
+// ── Login / Logout ──
+window.doLogin = async () => {
+  const raw = document.getElementById('login-name').value.trim();
+  const err = document.getElementById('login-error');
+  if (!raw) { err.classList.add('show'); return; }
+  err.classList.remove('show');
 
-function deleteExpense(i) {
-  const md = getMonth();
-  md.expenses.splice(i, 1);
-  setMonth(md);
-  render();
-}
+  currentUser = sanitizeName(raw);
+  if (!currentUser) { err.textContent = 'ชื่อไม่ถูกต้อง ลองใหม่นะ'; err.classList.add('show'); return; }
 
-function changeMonth(dir) {
+  // save to localStorage so next visit auto-login
+  localStorage.setItem('budgetUser', currentUser);
+  localStorage.setItem('budgetUserDisplay', raw);
+
+  document.getElementById('user-tag').textContent = '👤 ' + raw;
+  document.getElementById('screen-login').classList.remove('active');
+  document.getElementById('screen-app').classList.add('active');
+  await loadMonth();
+};
+
+window.doLogout = () => {
+  if (!confirm('ออกจากบัญชี "' + localStorage.getItem('budgetUserDisplay') + '" ?')) return;
+  localStorage.removeItem('budgetUser');
+  localStorage.removeItem('budgetUserDisplay');
+  currentUser = null;
+  document.getElementById('screen-app').classList.remove('active');
+  document.getElementById('screen-login').classList.add('active');
+  document.getElementById('login-name').value = '';
+};
+
+// ── Actions ──
+window.changeMonth = async (dir) => {
   currentMonth += dir;
   if (currentMonth > 11) { currentMonth = 0; currentYear++; }
   if (currentMonth < 0)  { currentMonth = 11; currentYear--; }
-  document.getElementById('month-label').textContent = MONTHS_TH[currentMonth] + ' ' + (currentYear + 543);
-  render();
-}
+  await loadMonth();
+};
 
-function showModal() {
-  document.getElementById('exp-name').value = '';
+window.updateIncome = () => {
+  monthData.income = parseFloat(document.getElementById('income-input').value) || 0;
+  render();
+  debounceSave();
+};
+
+window._del = (i) => {
+  monthData.expenses.splice(i, 1);
+  render();
+  saveMonth();
+};
+
+window.showModal = () => {
+  document.getElementById('exp-name').value   = '';
   document.getElementById('exp-amount').value = '';
   selectedEmoji = '🍜';
   document.querySelectorAll('#emoji-picker .emoji-btn').forEach((b,i) => b.classList.toggle('active', i===0));
   document.getElementById('modal').classList.add('open');
-}
+};
 
-function addExpense() {
-  const name = document.getElementById('exp-name').value.trim();
+window.addExpense = () => {
+  const name   = document.getElementById('exp-name').value.trim();
   const amount = parseFloat(document.getElementById('exp-amount').value);
-  if (!name)              { document.getElementById('exp-name').focus(); return; }
+  if (!name)                  { document.getElementById('exp-name').focus();   return; }
   if (!amount || amount <= 0) { document.getElementById('exp-amount').focus(); return; }
-  const md = getMonth();
-  md.expenses.push({ name, amount, emoji: selectedEmoji });
-  setMonth(md);
+  monthData.expenses.push({ name, amount, emoji: selectedEmoji });
   document.getElementById('modal').classList.remove('open');
   render();
-}
+  saveMonth();
+};
 
-function selectEmoji(btn, emoji) {
+window.selectEmoji = (btn, emoji) => {
   selectedEmoji = emoji;
   document.querySelectorAll('#emoji-picker .emoji-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-}
+};
 
-function closeModalOnBg(e) {
+window.closeModalOnBg = (e) => {
   if (e.target.id === 'modal') document.getElementById('modal').classList.remove('open');
-}
+};
 
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter' && document.getElementById('modal').classList.contains('open')) addExpense();
+  if (e.key === 'Enter') {
+    if (document.getElementById('modal').classList.contains('open')) window.addExpense();
+    if (document.getElementById('screen-login').classList.contains('active')) window.doLogin();
+  }
 });
 
-// Init
-document.getElementById('month-label').textContent = MONTHS_TH[currentMonth] + ' ' + (currentYear + 543);
-render();
+// ── Init ──
+document.getElementById('loading').classList.add('hide');
+const savedUser    = localStorage.getItem('budgetUser');
+const savedDisplay = localStorage.getItem('budgetUserDisplay');
+if (savedUser) {
+  currentUser = savedUser;
+  document.getElementById('user-tag').textContent = '👤 ' + (savedDisplay || savedUser);
+  document.getElementById('screen-app').classList.add('active');
+  loadMonth();
+} else {
+  document.getElementById('screen-login').classList.add('active');
+}
 </script>
 </body>
 </html>
