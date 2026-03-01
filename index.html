@@ -185,6 +185,20 @@
   .emoji-btn.active { border-color: var(--gold); background: var(--gold-light); }
   .submit-btn { width: 100%; background: linear-gradient(135deg, var(--sage-dark), #4A6E4A); color: white; border: none; border-radius: var(--radius); padding: 14px; font-family: 'Mitr', sans-serif; font-size: 1rem; font-weight: 500; cursor: pointer; margin-top: 8px; transition: all 0.2s; box-shadow: 0 4px 14px rgba(90,125,90,0.3); }
   .submit-btn:hover { transform: translateY(-1px); }
+  /* Category Summary */
+  .cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 0 16px; margin-bottom: 24px; }
+  .cat-card {
+    background: var(--warm-white); border-radius: var(--radius);
+    padding: 14px; box-shadow: var(--shadow-sm);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .cat-icon { font-size: 1.4rem; width: 36px; height: 36px; background: var(--cream); border-radius: 9px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .cat-info { min-width: 0; flex: 1; }
+  .cat-name { font-size: 0.78rem; color: var(--text-light); font-weight: 600; }
+  .cat-amount { font-family: 'Mitr', sans-serif; font-size: 1rem; font-weight: 600; color: var(--blush); }
+  .cat-bar-wrap { height: 3px; background: var(--blush-light); border-radius: 2px; margin-top: 5px; }
+  .cat-bar { height: 3px; background: var(--blush); border-radius: 2px; transition: width 0.5s ease; }
+
   .num { font-feature-settings: "tnum"; }
 </style>
 </head>
@@ -252,6 +266,11 @@
 
   <div class="section-label">🧾 รายการจ่าย</div>
   <div class="expense-list" id="expense-list"></div>
+
+  <div id="cat-section" style="display:none">
+    <div class="section-label" style="margin-top:8px">📊 สรุปตามหมวดหมู่</div>
+    <div class="cat-grid" id="cat-grid"></div>
+  </div>
 
   <button class="fab" onclick="showModal()">＋</button>
 </div>
@@ -381,6 +400,7 @@ function render() {
   const list = document.getElementById('expense-list');
   if (!monthData.expenses || monthData.expenses.length === 0) {
     list.innerHTML = `<div class="empty-state"><div class="empty-emoji">🌿</div><div style="font-size:0.9rem">ยังไม่มีรายการจ่าย<br>กด + เพื่อเพิ่มรายการ</div></div>`;
+    document.getElementById('cat-section').style.display = 'none';
     return;
   }
   list.innerHTML = monthData.expenses.map((e,i) => `
@@ -391,6 +411,7 @@ function render() {
       <button class="expense-delete" onclick="window._del(${i})">🗑</button>
     </div>
   `).join('');
+  renderCategories();
 }
 
 // ── Login / Logout ──
@@ -422,6 +443,45 @@ window.doLogout = () => {
   document.getElementById('screen-login').classList.add('active');
   document.getElementById('login-name').value = '';
 };
+
+// ── Category Summary ──
+function renderCategories() {
+  const expenses = monthData.expenses || [];
+  if (expenses.length === 0) {
+    document.getElementById('cat-section').style.display = 'none';
+    return;
+  }
+
+  // group by emoji
+  const catMap = {};
+  const catLabel = {
+    '🍜':'อาหาร','☕':'เครื่องดื่ม','🛒':'ช้อปปิ้ง','🏠':'ที่พัก',
+    '🚗':'เดินทาง','👗':'เสื้อผ้า','💊':'สุขภาพ','🎮':'บันเทิง',
+    '✈️':'ท่องเที่ยว','📱':'โทรศัพท์','🎁':'ของขวัญ','💡':'สาธารณูปโภค'
+  };
+  expenses.forEach(e => {
+    if (!catMap[e.emoji]) catMap[e.emoji] = 0;
+    catMap[e.emoji] += e.amount;
+  });
+
+  const sorted = Object.entries(catMap).sort((a,b) => b[1]-a[1]);
+  const maxVal = sorted[0][1];
+
+  document.getElementById('cat-section').style.display = 'block';
+  document.getElementById('cat-grid').innerHTML = sorted.map(([emoji, total]) => {
+    const pct = Math.round((total / maxVal) * 100);
+    const label = catLabel[emoji] || 'อื่นๆ';
+    return `
+      <div class="cat-card">
+        <div class="cat-icon">${emoji}</div>
+        <div class="cat-info">
+          <div class="cat-name">${label}</div>
+          <div class="cat-amount num">${fmt(total)}</div>
+          <div class="cat-bar-wrap"><div class="cat-bar" style="width:${pct}%"></div></div>
+        </div>
+      </div>`;
+  }).join('');
+}
 
 // ── Actions ──
 window.changeMonth = async (dir) => {
