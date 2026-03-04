@@ -979,6 +979,12 @@
                 </div>
                 <div class="emoji-picker" id="emoji-picker"></div>
             </div>
+            <div class="form-group">
+                <label class="form-label">ประเภทย่อย <span
+                        style="font-weight:400;color:var(--text-light)">(พิมพ์เองได้)</span></label>
+                <input class="form-input" id="exp-subtype" placeholder="เช่น จ่ายแม่, ค่าเช่า, ชาไข่มุก..."
+                    maxlength="40">
+            </div>
             <button class="submit-btn" onclick="addExpense()">+ เพิ่มรายการ</button>
         </div>
     </div>
@@ -1009,7 +1015,7 @@
                 colorClass: 'total-monthly',
                 barClass: 'bar-monthly',
                 emojis: [
-                    { e: '🏠', l: 'ค่าเช่า/บ้าน' },
+                    { e: '🏠', l: 'ค่าเช่า/บ้าน/จ่ายแม่' },
                     { e: '💡', l: 'ค่าไฟ/น้ำ' },
                     { e: '📱', l: 'โทรศัพท์/เน็ต' },
                     { e: '🚗', l: 'ค่าผ่อนรถ' },
@@ -1141,12 +1147,13 @@
             }
             list.innerHTML = monthData.expenses.map((e, i) => {
                 const groupLabel = CATEGORIES[e.group]?.label || 'อื่นๆ';
+                const subTag = e.subType ? ` · ${e.subType}` : '';
                 return `
     <div class="expense-item">
       <div class="expense-emoji">${e.emoji}</div>
       <div class="expense-info">
         <div class="expense-name">${e.name}</div>
-        <div class="expense-cat-tag">${groupLabel}</div>
+        <div class="expense-cat-tag">${groupLabel}${subTag}</div>
       </div>
       <div class="expense-amount num">${fmt(e.amount)}</div>
       <button class="expense-delete" onclick="window._del(${i})">🗑</button>
@@ -1174,9 +1181,11 @@
             expenses.forEach(e => {
                 const g = e.group || 'other';
                 groupTotals[g] = (groupTotals[g] || 0) + e.amount;
-                if (!groupSubs[g][e.emoji]) groupSubs[g][e.emoji] = { total: 0, count: 0 };
-                groupSubs[g][e.emoji].total += e.amount;
-                groupSubs[g][e.emoji].count += 1;
+                // key = subType (ถ้ามี) หรือ emoji
+                const key = e.subType || e.emoji;
+                if (!groupSubs[g][key]) groupSubs[g][key] = { total: 0, count: 0, emoji: e.emoji, label: e.subType || EMOJI_LABEL[e.emoji] || 'อื่นๆ' };
+                groupSubs[g][key].total += e.amount;
+                groupSubs[g][key].count += 1;
             });
 
             const maxGroupTotal = Math.max(...Object.values(groupTotals), 1);
@@ -1188,13 +1197,12 @@
 
                 // sub rows sorted by amount desc
                 const subEntries = Object.entries(groupSubs[gKey] || {}).sort((a, b) => b[1].total - a[1].total);
-                const subHTML = subEntries.map(([emoji, data]) => {
-                    const label = EMOJI_LABEL[emoji] || 'อื่นๆ';
+                const subHTML = subEntries.map(([, data]) => {
                     return `
         <div class="cat-sub-item">
-          <div class="cat-sub-emoji">${emoji}</div>
+          <div class="cat-sub-emoji">${data.emoji}</div>
           <div class="cat-sub-info">
-            <div class="cat-sub-name">${label}</div>
+            <div class="cat-sub-name">${data.label}</div>
             <div class="cat-sub-count">${data.count} รายการ</div>
           </div>
           <div class="cat-sub-amount num">${fmt(data.total)}</div>
@@ -1306,6 +1314,7 @@
         window.showModal = () => {
             document.getElementById('exp-name').value = '';
             document.getElementById('exp-amount').value = '';
+            document.getElementById('exp-subtype').value = '';
             selectedGroup = 'monthly';
             ['monthly', 'food', 'other'].forEach(k => {
                 document.getElementById('tab-' + k).className = 'cat-tab' + (k === 'monthly' ? ' active-monthly' : '');
@@ -1317,9 +1326,10 @@
         window.addExpense = () => {
             const name = document.getElementById('exp-name').value.trim();
             const amount = parseFloat(document.getElementById('exp-amount').value);
+            const subType = document.getElementById('exp-subtype').value.trim();
             if (!name) { document.getElementById('exp-name').focus(); return; }
             if (!amount || amount <= 0) { document.getElementById('exp-amount').focus(); return; }
-            monthData.expenses.push({ name, amount, emoji: selectedEmoji, group: selectedGroup });
+            monthData.expenses.push({ name, amount, emoji: selectedEmoji, group: selectedGroup, subType });
             document.getElementById('modal').classList.remove('open');
             render();
             saveMonth();
